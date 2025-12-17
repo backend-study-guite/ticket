@@ -33,7 +33,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/{concertId}/options")
     public ResponseEntity<ConcertOptionListResponse> getConcertOptions(@PathVariable Long concertId) {
-        return null;
+        return ResponseEntity.ok(ticketingService.getConcertOptions(concertId));
     }
 
     /**

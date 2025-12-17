@@ -6,6 +6,7 @@ import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
+import com.study.ticket.domain.repository.ConcertOptionRepository;
 import com.study.ticket.domain.repository.ConcertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class TicketingService {
 
     private final ConcertRepository concertRepository;
+    private final ConcertOptionRepository concertOptionRepository;
 
     /**
      * 콘서트 목록을 조회하는 메서드
@@ -30,7 +32,7 @@ public class TicketingService {
      * @return
      */
     public ConcertOptionListResponse getConcertOptions(Long concertId) {
-        return null;
+        return ConcertOptionListResponse.from(concertOptionRepository.findAllByConcertId(concertId));
     }
 
     /**
