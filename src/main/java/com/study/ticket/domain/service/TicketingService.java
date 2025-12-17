@@ -1,5 +1,6 @@
 package com.study.ticket.domain.service;
 
+import com.study.ticket.domain.constant.ReservationStatus;
 import com.study.ticket.domain.constant.SeatStatus;
 import com.study.ticket.domain.dto.request.ChargePointRequest;
 import com.study.ticket.domain.dto.request.PaymentRequest;
@@ -9,9 +10,12 @@ import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
 import com.study.ticket.domain.repository.ConcertOptionRepository;
 import com.study.ticket.domain.repository.ConcertRepository;
+import com.study.ticket.domain.repository.ReservationRepository;
 import com.study.ticket.domain.repository.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,7 @@ public class TicketingService {
     private final ConcertRepository concertRepository;
     private final ConcertOptionRepository concertOptionRepository;
     private final SeatRepository seatRepository;
+    private final ReservationRepository reservationRepository;
 
     /**
      * 콘서트 목록을 조회하는 메서드
@@ -48,12 +53,13 @@ public class TicketingService {
     }
 
     /**
-     * 유저가 예약 또는 구매한 좌석을 조회하는 메서드
+     * 유저가 예약 또는 구매(결제완료)한 좌석을 조회하는 메서드
      * @param userId
      * @return
      */
     public SeatListResponse getReservedSeats(Long userId) {
-        return null;
+        List<Long> seatIds = reservationRepository.findAllSeatIdByUserIdAndStatus(userId, ReservationStatus.PAID);
+        return SeatListResponse.from(seatRepository.findAllById(seatIds));
     }
 
     /**
