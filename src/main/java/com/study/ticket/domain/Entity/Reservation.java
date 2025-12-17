@@ -25,4 +25,18 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "reservation_status")
     private ReservationStatus status;
+
+    public static Reservation of(Long userId, Long seatId) {
+        return new Reservation(userId, seatId);
+    }
+
+    private Reservation (Long userId, Long seatId) {
+        this.userId = userId;
+        this.seatId = seatId;
+        this.status = ReservationStatus.NOT_PAID;
+    }
+
+    public void payment() {
+        this.status = ReservationStatus.PAID;
+    }
 }

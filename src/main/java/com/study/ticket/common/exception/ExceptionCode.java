@@ -14,6 +14,8 @@ public enum ExceptionCode {
 
     CONCERT_NOT_FOUND(HttpStatus.NOT_FOUND, "콘서트를 찾을 수 없습니다."),
 
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약사항을 찾을 수 없습니다"),
+
     SEAT_NOT_FOUND(HttpStatus.NOT_FOUND, "좌석을 찾을 수 없습니다."),
     SEAT_ALREADY_RESERVED(HttpStatus.BAD_REQUEST, "이미 예약된 좌석입니다."), // 동시성 이슈의 핵심!
     ;
