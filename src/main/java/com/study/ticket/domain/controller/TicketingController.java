@@ -6,12 +6,17 @@ import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
+import com.study.ticket.domain.service.TicketingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/ticketing")
+@RequiredArgsConstructor
 public class TicketingController {
+
+    private final TicketingService ticketingService;
 
     /**
      * 공연목록을 조회하는 API
@@ -19,7 +24,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts")
     public ResponseEntity<ConcertListResponse> getConcerts() {
-        return null;
+        return ResponseEntity.ok(ticketingService.getConcerts());
     }
 
     /**
