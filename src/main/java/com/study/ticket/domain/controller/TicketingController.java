@@ -43,7 +43,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/options/{concertOptionId}/seats")
     public ResponseEntity<SeatListResponse> getAvailableSeats(@PathVariable Long concertOptionId) {
-        return null;
+        return ResponseEntity.ok(ticketingService.getAvailableSeats(concertOptionId));
     }
 
     /**

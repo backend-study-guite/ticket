@@ -1,5 +1,6 @@
 package com.study.ticket.domain.service;
 
+import com.study.ticket.domain.constant.SeatStatus;
 import com.study.ticket.domain.dto.request.ChargePointRequest;
 import com.study.ticket.domain.dto.request.PaymentRequest;
 import com.study.ticket.domain.dto.request.ReserveSeatRequest;
@@ -8,6 +9,7 @@ import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
 import com.study.ticket.domain.repository.ConcertOptionRepository;
 import com.study.ticket.domain.repository.ConcertRepository;
+import com.study.ticket.domain.repository.SeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ public class TicketingService {
 
     private final ConcertRepository concertRepository;
     private final ConcertOptionRepository concertOptionRepository;
+    private final SeatRepository seatRepository;
 
     /**
      * 콘서트 목록을 조회하는 메서드
@@ -41,7 +44,7 @@ public class TicketingService {
      * @return
      */
     public SeatListResponse getAvailableSeats(Long concertOptionId) {
-        return null;
+        return SeatListResponse.from(seatRepository.findAllByConcertOptionIdAndStatus(concertOptionId, SeatStatus.AVAILABLE));
     }
 
     /**
