@@ -21,3 +21,5 @@ services:
     volumes:
       # 컨테이너를 삭제해도 데이터가 사라지지 않도록 로컬 폴더에 마운트
       - ./db/data:/var/lib/mysql
+      # 초기 스키마 / 더미데이터 (최초 1회 자동 실행)
+      - ./db/init:/docker-entrypoint-initdb.d
