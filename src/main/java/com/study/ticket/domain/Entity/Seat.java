@@ -23,6 +23,9 @@ public class Seat {
     @Column(name = "concert_option_id")
     private Long concertOptionId;
 
+    @Column(name = "price")
+    private Long price;
+
     @Column(name = "seat_status")
     @Enumerated(EnumType.STRING)
     private SeatStatus status;
