@@ -38,17 +38,17 @@ INSERT INTO concert_option (start_time, concert_id) VALUES
                                                         ('2025-01-10 18:00:00', 10);
 
 -- 4. Seat
-INSERT INTO seat (seat_number, concert_option_id, seat_status) VALUES
-                                                                   ('A1', 1, 'AVAILABLE'),
-                                                                   ('A2', 1, 'AVAILABLE'),
-                                                                   ('B1', 2, 'AVAILABLE'),
-                                                                   ('B2', 2, 'RESERVED'),
-                                                                   ('C1', 3, 'PAID'),
-                                                                   ('C2', 3, 'AVAILABLE'),
-                                                                   ('D1', 4, 'AVAILABLE'),
-                                                                   ('D2', 4, 'AVAILABLE'),
-                                                                   ('E1', 5, 'RESERVED'),
-                                                                   ('E2', 5, 'AVAILABLE');
+INSERT INTO seat (seat_number, concert_option_id, price, seat_status) VALUES
+                                                                   ('A1', 1, 18000, 'AVAILABLE'),
+                                                                   ('A2', 1, 20000, 'AVAILABLE'),
+                                                                   ('B1', 2, 18000, 'AVAILABLE'),
+                                                                   ('B2', 2, 20000, 'RESERVED'),
+                                                                   ('C1', 3, 32000, 'PAID'),
+                                                                   ('C2', 3, 34000, 'AVAILABLE'),
+                                                                   ('D1', 4, 20000, 'AVAILABLE'),
+                                                                   ('D2', 4, 20000, 'AVAILABLE'),
+                                                                   ('E1', 5, 16000, 'RESERVED'),
+                                                                   ('E2', 5, 16000, 'AVAILABLE');
 
 -- 5. Reservation
 INSERT INTO reservation (user_id, seat_id, reservation_status) VALUES

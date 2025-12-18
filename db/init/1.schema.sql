@@ -26,6 +26,7 @@ CREATE TABLE seat (
     seat_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     seat_number VARCHAR(20) NOT NULL,
     concert_option_id BIGINT NOT NULL,
+    price BIGINT DEFAULT 0,
     seat_status VARCHAR(20) NOT NULL
 );
 
