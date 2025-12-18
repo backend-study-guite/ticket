@@ -66,13 +66,12 @@ public class TicketingService {
     }
 
     /**
-     * 좌석을 예약하는 메서드
-     * 1. 동시성 제어하는 로직 구현
+     * 좌석을 예약하는 메서드 (단일 요청)
      * @param request
      * @return
      */
     @Transactional
-    public String reserveSeat(ReserveSeatRequest request) {
+    public String reserveSeatWithoutLock(ReserveSeatRequest request) {
         Long userId = request.userId();
         Long seatId = request.seatId();
 
@@ -87,6 +86,38 @@ public class TicketingService {
 
         // 좌석 예약
         seat.changeStatus(SeatStatus.RESERVED);
+        Reservation reservation = new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
+        reservationRepository.save(reservation);
+
+        return "좌석 예약이 완료되었습니다.";
+    }
+
+    /**
+     * 좌석을 예약하는 메서드
+     * 1. 동시성 제어하는 로직 구현 (비관락 적용)
+     * @param request
+     * @return
+     */
+    @Transactional
+    public String reserveSeatWithLock(ReserveSeatRequest request) {
+        Long userId = request.userId();
+        Long seatId = request.seatId();
+
+        // 1. 사용자 존재 체크
+        userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        // 2. 좌석 존재 체크 + 비관락
+        Seat seat = seatRepository.findByIdWithLock(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
+
+        // 3. 좌석 예약 상태 체크
+        if(seat.getStatus() != SeatStatus.AVAILABLE) {
+            throw new CustomException(ExceptionCode.SEAT_ALREADY_RESERVED);
+        }
+
+        // 4. 좌석 상태 변경
+        seat.changeStatus(SeatStatus.RESERVED);
+
+        // 5. 예약 생성
         Reservation reservation = new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
         reservationRepository.save(reservation);
 

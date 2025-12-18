@@ -61,9 +61,14 @@ public class TicketingController {
      * @param request
      * @return
      */
+    @PostMapping("/reservations/withoutlock")
+    public ResponseEntity<String> reserveSeatWithoutLock(@RequestBody ReserveSeatRequest request) {
+        return ResponseEntity.ok(ticketingService.reserveSeatWithLock(request));
+    }
+
     @PostMapping("/reservations")
-    public ResponseEntity<String> reserveSeat(@RequestBody ReserveSeatRequest request) {
-        return ResponseEntity.ok(ticketingService.reserveSeat(request));
+    public ResponseEntity<String> reserveSeatWithLock(@RequestBody ReserveSeatRequest request) {
+        return ResponseEntity.ok(ticketingService.reserveSeatWithLock(request));
     }
 
     /**
