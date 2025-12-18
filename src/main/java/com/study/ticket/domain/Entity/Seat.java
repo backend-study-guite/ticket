@@ -29,4 +29,8 @@ public class Seat {
     @Column(name = "seat_status")
     @Enumerated(EnumType.STRING)
     private SeatStatus status;
+
+    public void changeStatus (SeatStatus status) {
+        this.status = status;
+    }
 }

@@ -1,5 +1,9 @@
 package com.study.ticket.domain.service;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
+import com.study.ticket.domain.Entity.Reservation;
+import com.study.ticket.domain.Entity.Seat;
 import com.study.ticket.domain.constant.ReservationStatus;
 import com.study.ticket.domain.constant.SeatStatus;
 import com.study.ticket.domain.dto.request.ChargePointRequest;
@@ -8,12 +12,10 @@ import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
-import com.study.ticket.domain.repository.ConcertOptionRepository;
-import com.study.ticket.domain.repository.ConcertRepository;
-import com.study.ticket.domain.repository.ReservationRepository;
-import com.study.ticket.domain.repository.SeatRepository;
+import com.study.ticket.domain.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class TicketingService {
     private final ConcertOptionRepository concertOptionRepository;
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
 
     /**
      * 콘서트 목록을 조회하는 메서드
@@ -68,8 +71,26 @@ public class TicketingService {
      * @param request
      * @return
      */
+    @Transactional
     public String reserveSeat(ReserveSeatRequest request) {
-        return null;
+        Long userId = request.userId();
+        Long seatId = request.seatId();
+
+        // 사용자, 좌석 존재 체크
+        userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
+
+        // 좌석 예약 상태 체크
+        if(seat.getStatus() != SeatStatus.AVAILABLE) {
+            throw new CustomException(ExceptionCode.SEAT_ALREADY_RESERVED);
+        }
+
+        // 좌석 예약
+        seat.changeStatus(SeatStatus.RESERVED);
+        Reservation reservation = new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
+        reservationRepository.save(reservation);
+
+        return "좌석 예약이 완료되었습니다.";
     }
 
     /**

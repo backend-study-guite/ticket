@@ -47,7 +47,7 @@ public class TicketingController {
     }
 
     /**
-     * 예약된(결제완료된) 좌석 목록을 조회하는 API
+     * 예약된(결제완료된) 유저의 좌석 목록을 조회하는 API
      * @param userId
      * @return
      */
@@ -63,7 +63,7 @@ public class TicketingController {
      */
     @PostMapping("/reservations")
     public ResponseEntity<String> reserveSeat(@RequestBody ReserveSeatRequest request) {
-        return null;
+        return ResponseEntity.ok(ticketingService.reserveSeat(request));
     }
 
     /**

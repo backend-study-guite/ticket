@@ -25,4 +25,10 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "reservation_status")
     private ReservationStatus status;
+
+    public Reservation(Long userId, Long seatId, ReservationStatus status) {
+        this.userId = userId;
+        this.seatId = seatId;
+        this.status = status;
+    }
 }
