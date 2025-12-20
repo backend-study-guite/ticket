@@ -179,7 +179,19 @@ public class TicketingService {
      * @param request
      * @return
      */
+    @Transactional
     public Long chargePoint(ChargePointRequest request) {
-        return null;
+        Long userId = request.userId();
+        Long amount = request.amount();
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        if(amount <= 0) {
+            throw new CustomException(ExceptionCode.ILLEGAL_POINTS);
+        }
+
+        user.chargePoint(amount);
+
+        return user.getPoints();
     }
 }

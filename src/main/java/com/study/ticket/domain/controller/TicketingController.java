@@ -88,6 +88,6 @@ public class TicketingController {
      */
     @PostMapping("/point/charge")
     public ResponseEntity<Long> chargePoint(@RequestBody ChargePointRequest request) {
-        return null;
+        return ResponseEntity.ok(ticketingService.chargePoint(request));
     }
 }
