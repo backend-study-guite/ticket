@@ -8,3 +8,4 @@ public record SeatResponse(Long seatId, String seatNumber, String status) {
         return new SeatResponse(seat.getId(), seat.getSeatNumber(), seat.getStatus().toString());
     }
 }
+

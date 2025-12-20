@@ -1,6 +1,7 @@
 package com.study.ticket.domain.repository;
 
 import com.study.ticket.domain.Entity.Seat;
+import com.study.ticket.domain.constant.SeatStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -14,4 +15,13 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Seat s where s.id = :id")
     Optional<Seat> findByIdForUpdate(@Param("id") Long id);
+
+    List<Seat> findAllByConcertOptionId(Long concertOptionId, Sort sort);
+
+    // 호출
+    seatRepository.findAllByConcertOptionId(
+    concertOptionId,
+            Sort.by(Sort.Order.asc("rowChar"), Sort.Order.asc("colNumber"))
+            );
+
 }

@@ -27,6 +27,7 @@ public class Reservation {
     private ReservationStatus status;
 
     public static Reservation create(Long userId, Long seatId) {
+
         Reservation r = new Reservation();
         r.userId = userId;
         r.seatId = seatId;
