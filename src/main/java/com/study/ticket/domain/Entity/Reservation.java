@@ -25,4 +25,24 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "reservation_status")
     private ReservationStatus status;
+
+    public static Reservation create(Long userId, Long seatId) {
+        Reservation r = new Reservation();
+        r.userId = userId;
+        r.seatId = seatId;
+        r.status = ReservationStatus.NOT_PAID;
+        return r;
+    }
+
+    public boolean isNotPaid() {
+        return this.status == ReservationStatus.NOT_PAID;
+    }
+
+    public void pay() {
+        if (this.status != ReservationStatus.NOT_PAID) {
+            throw new IllegalStateException("이미 결제된 예약 입니다.");
+        }
+        this.status = ReservationStatus.PAID;
+    }
 }
+

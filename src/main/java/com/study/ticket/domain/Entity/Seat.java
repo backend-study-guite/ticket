@@ -28,5 +28,42 @@ public class Seat {
 
     @Column(name = "seat_status")
     @Enumerated(EnumType.STRING)
-    private SeatStatus status;
+    private SeatStatus status = SeatStatus.AVAILABLE;
+
+    public boolean isAvailable(){
+        return this.status == SeatStatus.AVAILABLE;
+    }
+
+    public void reserve(){
+        if (this.status != SeatStatus.AVAILABLE){
+            throw new IllegalStateException("예약 불가능한 좌석 상태입니다: " + this.status);
+        }
+        this.status = SeatStatus.RESERVED;
+    }
+
+
+    public void pay(){
+        if(this.status != SeatStatus.RESERVED) {
+            throw new IllegalStateException("결제 오류");
+        }
+        this.status = SeatStatus.PAID;
+    }
+
+    public void release(){
+        if(this.status != SeatStatus.RESERVED){
+            throw new IllegalStateException("환불이 불가능 합니다.");
+        }
+        this.status = SeatStatus.AVAILABLE;
+    }
+
+    //테스트용 코드
+    public static Seat create(Long concertOptionId, String seatNumber) {
+        Seat s = new Seat();
+        s.concertOptionId = concertOptionId;
+        s.seatNumber = seatNumber;
+        s.status = SeatStatus.AVAILABLE;
+        return s;
+    }
+
+
 }
