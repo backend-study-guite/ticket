@@ -4,6 +4,7 @@ import com.study.ticket.common.exception.CustomException;
 import com.study.ticket.common.exception.ExceptionCode;
 import com.study.ticket.domain.Entity.Reservation;
 import com.study.ticket.domain.Entity.Seat;
+import com.study.ticket.domain.Entity.User;
 import com.study.ticket.domain.constant.ReservationStatus;
 import com.study.ticket.domain.constant.SeatStatus;
 import com.study.ticket.domain.dto.request.ChargePointRequest;
@@ -129,8 +130,48 @@ public class TicketingService {
      * @param request
      * @return
      */
+    @Transactional
     public String payment(PaymentRequest request) {
-        return null;
+        Long userId = request.userId();
+        Long reservationId = request.reservationId();
+        Long usePoint = request.usePoint();
+
+        // 1. 사용자 존재 체크
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        // 2. 예약 - 존재 체크, 중복 결제 방지, 본인 체크
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new CustomException(ExceptionCode.RESERVATION_NOT_FOUND));
+
+        if(reservation.getStatus() == ReservationStatus.PAID) {
+            throw new CustomException(ExceptionCode.RESERVATION_ALREADY_PAID);
+        }
+
+        if(!reservation.getUserId().equals(userId)) {
+            throw new CustomException(ExceptionCode.RESERVATION_NOT_OWNED_BY_USER);
+        }
+
+        // 3. 좌석 - 존재 체크, 중복 결제 방지
+        Seat seat = seatRepository.findById(reservation.getSeatId()).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
+
+        if(seat.getStatus() == SeatStatus.PAID) {
+            throw new CustomException(ExceptionCode.SEAT_ALREADY_PAID);
+        }
+
+        // 4. 포인트 - 사용 가능 체크
+        if(user.getPoints() < usePoint) {
+            throw new CustomException(ExceptionCode.NOT_ENOUGH_POINTS);
+        }
+
+        if (usePoint > seat.getPrice()) {
+            throw new CustomException(ExceptionCode.POINT_EXCEEDS_SEAT_PRICE);
+        }
+
+        // 5. 상태 변경
+        reservation.changeStatus(ReservationStatus.PAID);
+        seat.changeStatus(SeatStatus.PAID);
+        user.usePoint(usePoint);
+
+        return "결제가 완료되었습니다.";
     }
 
     /**

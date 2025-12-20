@@ -31,4 +31,8 @@ public class Reservation {
         this.seatId = seatId;
         this.status = status;
     }
+
+    public void changeStatus (ReservationStatus status) {
+        this.status = status;
+    }
 }

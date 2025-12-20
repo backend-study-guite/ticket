@@ -78,7 +78,7 @@ public class TicketingController {
      */
     @PostMapping("/payments")
     public ResponseEntity<String> payment(@RequestBody PaymentRequest request) {
-        return null;
+        return ResponseEntity.ok(ticketingService.payment(request));
     }
 
     /**
