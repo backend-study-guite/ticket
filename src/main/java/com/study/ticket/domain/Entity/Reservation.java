@@ -26,6 +26,10 @@ public class Reservation {
     @Column(name = "reservation_status")
     private ReservationStatus status;
 
+    public static Reservation of(Long userId, Long seatId) {
+        return new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
+    }
+
     public Reservation(Long userId, Long seatId, ReservationStatus status) {
         this.userId = userId;
         this.seatId = seatId;

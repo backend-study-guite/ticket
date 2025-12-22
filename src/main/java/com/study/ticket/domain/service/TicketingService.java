@@ -87,7 +87,7 @@ public class TicketingService {
 
         // 좌석 예약
         seat.changeStatus(SeatStatus.RESERVED);
-        Reservation reservation = new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
+        Reservation reservation = Reservation.of(userId, seatId);
         reservationRepository.save(reservation);
 
         return "좌석 예약이 완료되었습니다.";
