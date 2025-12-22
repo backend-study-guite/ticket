@@ -1,5 +1,7 @@
 package com.study.ticket.domain.Entity;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
 import com.study.ticket.domain.constant.SeatStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -30,7 +32,10 @@ public class Seat {
     @Enumerated(EnumType.STRING)
     private SeatStatus status;
 
-    public void changeStatus (SeatStatus status) {
-        this.status = status;
+    public void reserve() {
+        if(this.status != SeatStatus.AVAILABLE) {
+            throw new CustomException(ExceptionCode.SEAT_ALREADY_RESERVED);
+        }
+        this.status = SeatStatus.RESERVED;
     }
 }

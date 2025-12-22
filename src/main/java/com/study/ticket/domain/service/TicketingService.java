@@ -76,21 +76,16 @@ public class TicketingService {
         Long userId = request.userId();
         Long seatId = request.seatId();
 
-        // 사용자, 좌석 존재 체크
         userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
         Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
 
-        // 좌석 예약 상태 체크
-        if(seat.getStatus() != SeatStatus.AVAILABLE) {
-            throw new CustomException(ExceptionCode.SEAT_ALREADY_RESERVED);
-        }
-
         // 좌석 예약
-        seat.changeStatus(SeatStatus.RESERVED);
+        seat.reserve();
+
         Reservation reservation = Reservation.of(userId, seatId);
         reservationRepository.save(reservation);
 
-        return "좌석 예약이 완료되었습니다.";
+        return seat.getSeatNumber();
     }
 
     /**
@@ -110,19 +105,14 @@ public class TicketingService {
         // 2. 좌석 존재 체크 + 비관락
         Seat seat = seatRepository.findByIdWithLock(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
 
-        // 3. 좌석 예약 상태 체크
-        if(seat.getStatus() != SeatStatus.AVAILABLE) {
-            throw new CustomException(ExceptionCode.SEAT_ALREADY_RESERVED);
-        }
-
-        // 4. 좌석 상태 변경
-        seat.changeStatus(SeatStatus.RESERVED);
+        // 3. 좌석 예약
+        seat.reserve();
 
         // 5. 예약 생성
-        Reservation reservation = new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
+        Reservation reservation = Reservation.of(userId, seatId);
         reservationRepository.save(reservation);
 
-        return "좌석 예약이 완료되었습니다.";
+        return seat.getSeatNumber();
     }
 
     /**
@@ -136,39 +126,15 @@ public class TicketingService {
         Long reservationId = request.reservationId();
         Long usePoint = request.usePoint();
 
-        // 1. 사용자 존재 체크
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
-        // 2. 예약 - 존재 체크, 중복 결제 방지, 본인 체크
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new CustomException(ExceptionCode.RESERVATION_NOT_FOUND));
 
-        if(reservation.getStatus() == ReservationStatus.PAID) {
-            throw new CustomException(ExceptionCode.RESERVATION_ALREADY_PAID);
-        }
+        // 예약 결제
+        reservation.validateOwner(userId); // 권한 검증
+        reservation.payment(); // 상태 변환
 
-        if(!reservation.getUserId().equals(userId)) {
-            throw new CustomException(ExceptionCode.RESERVATION_NOT_OWNED_BY_USER);
-        }
-
-        // 3. 좌석 - 존재 체크, 중복 결제 방지
-        Seat seat = seatRepository.findById(reservation.getSeatId()).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
-
-        if(seat.getStatus() == SeatStatus.PAID) {
-            throw new CustomException(ExceptionCode.SEAT_ALREADY_PAID);
-        }
-
-        // 4. 포인트 - 사용 가능 체크
-        if(user.getPoints() < usePoint) {
-            throw new CustomException(ExceptionCode.NOT_ENOUGH_POINTS);
-        }
-
-        if (usePoint > seat.getPrice()) {
-            throw new CustomException(ExceptionCode.POINT_EXCEEDS_SEAT_PRICE);
-        }
-
-        // 5. 상태 변경
-        reservation.changeStatus(ReservationStatus.PAID);
-        seat.changeStatus(SeatStatus.PAID);
+        // 포인트 사용
         user.usePoint(usePoint);
 
         return "결제가 완료되었습니다.";
