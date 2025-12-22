@@ -32,7 +32,7 @@ public class Reservation {
         return new Reservation(userId, seatId, ReservationStatus.NOT_PAID);
     }
 
-    public Reservation(Long userId, Long seatId, ReservationStatus status) {
+    private Reservation(Long userId, Long seatId, ReservationStatus status) {
         this.userId = userId;
         this.seatId = seatId;
         this.status = status;
