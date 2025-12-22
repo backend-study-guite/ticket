@@ -1,24 +1,41 @@
 package com.study.ticket.domain.service;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
+import com.study.ticket.domain.Entity.Reservation;
+import com.study.ticket.domain.Entity.Seat;
+import com.study.ticket.domain.Entity.User;
+import com.study.ticket.domain.constant.ReservationStatus;
+import com.study.ticket.domain.constant.SeatStatus;
 import com.study.ticket.domain.dto.request.ChargePointRequest;
 import com.study.ticket.domain.dto.request.PaymentRequest;
 import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
+import com.study.ticket.domain.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TicketingService {
+
+    private final ConcertRepository concertRepository;
+    private final ConcertOptionRepository concertOptionRepository;
+    private final SeatRepository seatRepository;
+    private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
 
     /**
      * 콘서트 목록을 조회하는 메서드
      * @return
      */
     public ConcertListResponse getConcerts() {
-        return null;
+        return ConcertListResponse.from(concertRepository.findAll());
     }
 
     /**
@@ -27,7 +44,7 @@ public class TicketingService {
      * @return
      */
     public ConcertOptionListResponse getConcertOptions(Long concertId) {
-        return null;
+        return ConcertOptionListResponse.from(concertOptionRepository.findAllByConcertId(concertId));
     }
 
     /**
@@ -36,26 +53,66 @@ public class TicketingService {
      * @return
      */
     public SeatListResponse getAvailableSeats(Long concertOptionId) {
-        return null;
+        return SeatListResponse.from(seatRepository.findAllByConcertOptionIdAndStatus(concertOptionId, SeatStatus.AVAILABLE));
     }
 
     /**
-     * 유저가 예약 또는 구매한 좌석을 조회하는 메서드
+     * 유저가 예약 또는 구매(결제완료)한 좌석을 조회하는 메서드
      * @param userId
      * @return
      */
     public SeatListResponse getReservedSeats(Long userId) {
-        return null;
+        List<Long> seatIds = reservationRepository.findAllSeatIdByUserIdAndStatus(userId, ReservationStatus.PAID);
+        return SeatListResponse.from(seatRepository.findAllById(seatIds));
+    }
+
+    /**
+     * 좌석을 예약하는 메서드 (단일 요청)
+     * @param request
+     * @return
+     */
+    @Transactional
+    public String reserveSeatWithoutLock(ReserveSeatRequest request) {
+        Long userId = request.userId();
+        Long seatId = request.seatId();
+
+        userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
+
+        // 좌석 예약
+        seat.reserve();
+
+        Reservation reservation = Reservation.of(userId, seatId);
+        reservationRepository.save(reservation);
+
+        return seat.getSeatNumber();
     }
 
     /**
      * 좌석을 예약하는 메서드
-     * 1. 동시성 제어하는 로직 구현
+     * 1. 동시성 제어하는 로직 구현 (비관락 적용)
      * @param request
      * @return
      */
-    public String reserveSeat(ReserveSeatRequest request) {
-        return null;
+    @Transactional
+    public String reserveSeatWithLock(ReserveSeatRequest request) {
+        Long userId = request.userId();
+        Long seatId = request.seatId();
+
+        // 1. 사용자 존재 체크
+        userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        // 2. 좌석 존재 체크 + 비관락
+        Seat seat = seatRepository.findByIdWithLock(seatId).orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
+
+        // 3. 좌석 예약
+        seat.reserve();
+
+        // 5. 예약 생성
+        Reservation reservation = Reservation.of(userId, seatId);
+        reservationRepository.save(reservation);
+
+        return seat.getSeatNumber();
     }
 
     /**
@@ -63,8 +120,24 @@ public class TicketingService {
      * @param request
      * @return
      */
+    @Transactional
     public String payment(PaymentRequest request) {
-        return null;
+        Long userId = request.userId();
+        Long reservationId = request.reservationId();
+        Long usePoint = request.usePoint();
+
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new CustomException(ExceptionCode.RESERVATION_NOT_FOUND));
+
+        // 예약 결제
+        reservation.validateOwner(userId); // 권한 검증
+        reservation.payment(); // 상태 변환
+
+        // 포인트 사용
+        user.usePoint(usePoint);
+
+        return "결제가 완료되었습니다.";
     }
 
     /**
@@ -72,7 +145,19 @@ public class TicketingService {
      * @param request
      * @return
      */
+    @Transactional
     public Long chargePoint(ChargePointRequest request) {
-        return null;
+        Long userId = request.userId();
+        Long amount = request.amount();
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        if(amount <= 0) {
+            throw new CustomException(ExceptionCode.ILLEGAL_POINTS);
+        }
+
+        user.chargePoint(amount);
+
+        return user.getPoints();
     }
 }

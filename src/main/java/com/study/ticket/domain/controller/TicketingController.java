@@ -6,12 +6,18 @@ import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
+import com.study.ticket.domain.service.TicketingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/ticketing")
+@RequiredArgsConstructor
 public class TicketingController {
+
+    private final TicketingService ticketingService;
 
     /**
      * 공연목록을 조회하는 API
@@ -19,7 +25,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts")
     public ResponseEntity<ConcertListResponse> getConcerts() {
-        return null;
+        return ResponseEntity.ok(ticketingService.getConcerts());
     }
 
     /**
@@ -28,7 +34,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/{concertId}/options")
     public ResponseEntity<ConcertOptionListResponse> getConcertOptions(@PathVariable Long concertId) {
-        return null;
+        return ResponseEntity.ok(ticketingService.getConcertOptions(concertId));
     }
 
     /**
@@ -38,17 +44,17 @@ public class TicketingController {
      */
     @GetMapping("/concerts/options/{concertOptionId}/seats")
     public ResponseEntity<SeatListResponse> getAvailableSeats(@PathVariable Long concertOptionId) {
-        return null;
+        return ResponseEntity.ok(ticketingService.getAvailableSeats(concertOptionId));
     }
 
     /**
-     * 예약된(결제완료된) 좌석 목록을 조회하는 API
+     * 예약된(결제완료된) 유저의 좌석 목록을 조회하는 API
      * @param userId
      * @return
      */
     @GetMapping("/user/{userId}/reservations")
     public ResponseEntity<SeatListResponse> getReservedSeats(@PathVariable Long userId) {
-        return null;
+        return ResponseEntity.ok(ticketingService.getReservedSeats(userId));
     }
 
     /**
@@ -56,9 +62,14 @@ public class TicketingController {
      * @param request
      * @return
      */
+    @PostMapping("/reservations/withoutlock")
+    public ResponseEntity<String> reserveSeatWithoutLock(@RequestBody ReserveSeatRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketingService.reserveSeatWithoutLock(request));
+    }
+
     @PostMapping("/reservations")
-    public ResponseEntity<String> reserveSeat(@RequestBody ReserveSeatRequest request) {
-        return null;
+    public ResponseEntity<String> reserveSeatWithLock(@RequestBody ReserveSeatRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketingService.reserveSeatWithLock(request));
     }
 
     /**
@@ -68,7 +79,7 @@ public class TicketingController {
      */
     @PostMapping("/payments")
     public ResponseEntity<String> payment(@RequestBody PaymentRequest request) {
-        return null;
+        return ResponseEntity.ok(ticketingService.payment(request));
     }
 
     /**
@@ -78,6 +89,6 @@ public class TicketingController {
      */
     @PostMapping("/point/charge")
     public ResponseEntity<Long> chargePoint(@RequestBody ChargePointRequest request) {
-        return null;
+        return ResponseEntity.ok(ticketingService.chargePoint(request));
     }
 }
