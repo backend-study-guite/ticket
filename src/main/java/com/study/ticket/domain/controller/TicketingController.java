@@ -8,6 +8,7 @@ import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
 import com.study.ticket.domain.service.TicketingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,12 +64,12 @@ public class TicketingController {
      */
     @PostMapping("/reservations/withoutlock")
     public ResponseEntity<String> reserveSeatWithoutLock(@RequestBody ReserveSeatRequest request) {
-        return ResponseEntity.ok(ticketingService.reserveSeatWithLock(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketingService.reserveSeatWithoutLock(request));
     }
 
     @PostMapping("/reservations")
     public ResponseEntity<String> reserveSeatWithLock(@RequestBody ReserveSeatRequest request) {
-        return ResponseEntity.ok(ticketingService.reserveSeatWithLock(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketingService.reserveSeatWithLock(request));
     }
 
     /**
