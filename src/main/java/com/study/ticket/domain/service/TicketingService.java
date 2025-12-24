@@ -25,40 +25,6 @@ public class TicketingService {
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
-    /**
-     * 콘서트 목록을 조회하는 메서드
-     * @return
-     */
-    public ConcertListResponse getConcerts() {
-        return null;
-    }
-
-    /**
-     * 콘서트 옵션을 조회하는 메서드
-     * @param concertId
-     * @return
-     */
-    public ConcertOptionListResponse getConcertOptions(Long concertId) {
-        return null;
-    }
-
-    /**
-     * 예매가능한 좌석을 조회하는 메서드
-     * @param concertOptionId
-     * @return
-     */
-    public SeatListResponse getAvailableSeats(Long concertOptionId) {
-        return null;
-    }
-
-    /**
-     * 유저가 예약 또는 구매한 좌석을 조회하는 메서드
-     * @param userId
-     * @return
-     */
-    public SeatListResponse getReservedSeats(Long userId) {
-        return null;
-    }
 
     /**
      * 좌석을 예약하는 메서드
@@ -246,6 +212,7 @@ public class TicketingService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. seatId=" + reservation.getSeatId()));
 
         /*
+        // 결제 처리 중 좌석 상태(SOLD/RESERVED)가 동시에 바뀌지 않도록 row lock을 건다.
          * ===============================
          * [7] 좌석을 왜 "예약에서 꺼내서" 찾지?
          * ===============================

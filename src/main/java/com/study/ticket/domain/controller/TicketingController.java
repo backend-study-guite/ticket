@@ -6,6 +6,7 @@ import com.study.ticket.domain.dto.request.ReserveSeatRequest;
 import com.study.ticket.domain.dto.response.ConcertListResponse;
 import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
+import com.study.ticket.domain.service.TicketingQueryService;
 import com.study.ticket.domain.service.TicketingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class TicketingController {
 
     private final TicketingService ticketingService;
+    private final TicketingQueryService ticketingQueryService;
 
     /**
      * 공연목록을 조회하는 API
@@ -24,7 +26,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts")
     public ResponseEntity<ConcertListResponse> getConcerts() {
-        return null;
+      return ResponseEntity.ok(ticketingQueryService.getConcerts());
     }
 
     /**
@@ -33,7 +35,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/{concertId}/options")
     public ResponseEntity<ConcertOptionListResponse> getConcertOptions(@PathVariable Long concertId) {
-        return null;
+        return ResponseEntity.ok(ticketingQueryService.getConcertOptions(concertId));
     }
 
     /**
@@ -43,7 +45,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/options/{concertOptionId}/seats")
     public ResponseEntity<SeatListResponse> getAvailableSeats(@PathVariable Long concertOptionId) {
-        return null;
+            return ResponseEntity.ok(ticketingQueryService.getAvailableSeats(concertOptionId));
     }
 
     /**
@@ -53,7 +55,9 @@ public class TicketingController {
      */
     @GetMapping("/user/{userId}/reservations")
     public ResponseEntity<SeatListResponse> getReservedSeats(@PathVariable Long userId) {
-        return null;
+        SeatListResponse response = ticketingQueryService.getReservedSeats(userId);
+        return ResponseEntity.ok(response);
+
     }
 
     /**
@@ -131,6 +135,7 @@ public class TicketingController {
      */
     @PostMapping("/point/charge")
     public ResponseEntity<Long> chargePoint(@RequestBody ChargePointRequest request) {
-        return null;
+
+        return ResponseEntity.ok(ticketingService.chargePoint(request));
     }
 }
