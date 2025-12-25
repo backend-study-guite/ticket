@@ -26,6 +26,8 @@ public class TicketingController {
      */
     @GetMapping("/concerts")
     public ResponseEntity<ConcertListResponse> getConcerts() {
+        // 1) 컨트롤러는 서비스에게 "공연 목록 줘" 라고만 요청한다.
+        // 2) 실제 DB 조회는 서비스 → 레포지토리에서 일어난다.
       return ResponseEntity.ok(ticketingQueryService.getConcerts());
     }
 
@@ -35,6 +37,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/{concertId}/options")
     public ResponseEntity<ConcertOptionListResponse> getConcertOptions(@PathVariable Long concertId) {
+        // concertId를 URL에서 꺼내서 서비스로 전달
         return ResponseEntity.ok(ticketingQueryService.getConcertOptions(concertId));
     }
 
@@ -45,6 +48,7 @@ public class TicketingController {
      */
     @GetMapping("/concerts/options/{concertOptionId}/seats")
     public ResponseEntity<SeatListResponse> getAvailableSeats(@PathVariable Long concertOptionId) {
+        // 특정 콘서트 옵션에 대해 "예매 가능한 좌석"만 조회
             return ResponseEntity.ok(ticketingQueryService.getAvailableSeats(concertOptionId));
     }
 
@@ -55,6 +59,7 @@ public class TicketingController {
      */
     @GetMapping("/user/{userId}/reservations")
     public ResponseEntity<SeatListResponse> getReservedSeats(@PathVariable Long userId) {
+        // 유저의 "결제 완료(PAID)" 좌석 목록 조회
         SeatListResponse response = ticketingQueryService.getReservedSeats(userId);
         return ResponseEntity.ok(response);
 
