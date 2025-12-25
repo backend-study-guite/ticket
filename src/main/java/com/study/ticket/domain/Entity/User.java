@@ -1,5 +1,7 @@
 package com.study.ticket.domain.Entity;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,11 +33,11 @@ public class User {
     }
 
     public void usePoint(Long amount) {
-        if(amount == null || amount <=0) {
-            throw new IllegalArgumentException("사용 금액이 0보다 커야합니다");
+        if (amount == null || amount <= 0) {
+            throw new CustomException(ExceptionCode.ILLEGAL_POINTS);
         }
-        if(this.points < amount) {
-            throw new IllegalArgumentException("포인트가 부족합니다. 현재포인트: " + this.points);
+        if (this.points < amount) {
+            throw new CustomException(ExceptionCode.NOT_ENOUGH_POINTS);
         }
         this.points -= amount;
     }

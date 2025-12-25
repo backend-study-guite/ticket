@@ -56,7 +56,7 @@ public class TicketingService {
 
         // 1️⃣ 좌석 조회 + 락
         Seat seat = seatRepository.findByIdForUpdate(seatId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석 입니다. seatId ="+ seatId));
+                .orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
 
         /*
          * [DB → Seat 엔티티]
@@ -150,7 +150,7 @@ public class TicketingService {
 
         // 1) 예약(Reservation) 락 조회
             Reservation reservation = reservationRepository.findByIdForUpdate(reservationId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다."));
+                    .orElseThrow(() -> new CustomException(ExceptionCode.RESERVATION_NOT_FOUND));
         /*
          * ===============================
          * [3] findByIdForUpdate + orElseThrow가 뭔데?
@@ -194,7 +194,7 @@ public class TicketingService {
 
         // 1-1) 예약자와 결제 요청자가 같은지 검증
         if (!reservation.getUserId().equals(userId)) {
-                throw new IllegalArgumentException(("예약자와 결제 요청 유저가 다릅니다"));
+            throw new CustomException(ExceptionCode.RESERVATION_USER_MISMATCH);
             }
         /*
          * ===============================
@@ -206,12 +206,12 @@ public class TicketingService {
 
         // 1-2) 이미 결제된 예약이면 막기(중복 결제 방지)
             if (!reservation.isNotPaid()) {
-                throw new IllegalArgumentException("이미 결제된 예약입니다.");
+                throw new CustomException(ExceptionCode.RESERVATION_ALREADY_PAID);
             }
 
         // 2) 좌석(Seat) 락 조회
         Seat seat = seatRepository.findByIdForUpdate(reservation.getSeatId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다. seatId=" + reservation.getSeatId()));
+                .orElseThrow(() -> new CustomException(ExceptionCode.SEAT_NOT_FOUND));
 
         /*
         // 결제 처리 중 좌석 상태(SOLD/RESERVED)가 동시에 바뀌지 않도록 row lock을 건다.
@@ -225,7 +225,7 @@ public class TicketingService {
 
         // 3) 유저 락 조회 (동시 차감 방지)
         User user = userRepository.findByIdForUpdate(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId=" + userId));
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         /*
          * ===============================
@@ -263,9 +263,7 @@ public class TicketingService {
 
 
         // 5) 포인트 충분한지 검증
-        if (user.getPoints() < price) {
-            throw new IllegalArgumentException("포인트가 부족합니다. 보유=" + user.getPoints() + ", 필요=" + price);
-        }
+        //포인트 검증이 이미 있어서 삭제
 
         /*
          * ===============================

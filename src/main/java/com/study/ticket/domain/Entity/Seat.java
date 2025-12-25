@@ -1,5 +1,7 @@
 package com.study.ticket.domain.Entity;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
 import com.study.ticket.domain.constant.SeatStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -36,7 +38,8 @@ public class Seat {
 
     public void reserve(){
         if (this.status != SeatStatus.AVAILABLE){
-            throw new IllegalStateException("예약 불가능한 좌석 상태입니다: " + this.status);
+            // ✅ 이미 RESERVED/PAID 이면 예약 불가
+            throw new CustomException(ExceptionCode.SEAT_RESERVE_INVALID_STATE);
         }
         this.status = SeatStatus.RESERVED;
     }
@@ -44,14 +47,16 @@ public class Seat {
 
     public void pay(){
         if(this.status != SeatStatus.RESERVED) {
-            throw new IllegalStateException("결제 오류");
+            // ✅ RESERVED가 아니면 결제 처리 불가
+            throw new CustomException(ExceptionCode.SEAT_PAY_INVALID_STATE);
         }
         this.status = SeatStatus.PAID;
     }
 
     public void release(){
         if(this.status != SeatStatus.RESERVED){
-            throw new IllegalStateException("환불이 불가능 합니다.");
+            // ✅ RESERVED 상태가 아니면 취소/환불 불가
+            throw new CustomException(ExceptionCode.SEAT_RELEASE_INVALID_STATE);
         }
         this.status = SeatStatus.AVAILABLE;
     }

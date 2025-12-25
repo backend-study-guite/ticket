@@ -1,5 +1,7 @@
 package com.study.ticket.domain.Entity;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
 import com.study.ticket.domain.constant.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -41,7 +43,7 @@ public class Reservation {
 
     public void pay() {
         if (this.status != ReservationStatus.NOT_PAID) {
-            throw new IllegalStateException("이미 결제된 예약 입니다.");
+            throw new CustomException(ExceptionCode.RESERVATION_PAY_INVALID_STATE);
         }
         this.status = ReservationStatus.PAID;
     }
