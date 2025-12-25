@@ -3,7 +3,6 @@ package com.study.ticket.domain.repository;
 import com.study.ticket.domain.Entity.Seat;
 import com.study.ticket.domain.constant.SeatStatus;
 import jakarta.persistence.LockModeType;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

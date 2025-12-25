@@ -1,5 +1,7 @@
 package com.study.ticket.domain.service;
 
+import com.study.ticket.common.exception.CustomException;
+import com.study.ticket.common.exception.ExceptionCode;
 import com.study.ticket.domain.Entity.Reservation;
 import com.study.ticket.domain.Entity.Seat;
 import com.study.ticket.domain.Entity.User;
@@ -54,7 +56,7 @@ public class TicketingService {
 
         // 1️⃣ 좌석 조회 + 락
         Seat seat = seatRepository.findByIdForUpdate(seatId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석 입니다. seatId = seatId"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석 입니다. seatId ="+ seatId));
 
         /*
          * [DB → Seat 엔티티]
@@ -322,6 +324,20 @@ public class TicketingService {
      * @return
      */
     public Long chargePoint(ChargePointRequest request) {
-        return null;
+        Long userId = request.userId();
+        //충전할 유저 아이디
+        Long amount = request.amount();
+        //충전할 point 가격
+
+        if(amount == null || amount <= 0) {
+            throw new CustomException(ExceptionCode.ILLEGAL_POINTS);
+        }
+        //useId를 통해서 유저를 특정
+        User user = userRepository.findByIdForUpdate(userId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        //포인트 충전
+        user.chargePoint(amount);
+        //충전된 point를 get해서 전달
+        return  user.getPoints();
     }
 }
