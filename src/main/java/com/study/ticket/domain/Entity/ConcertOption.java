@@ -22,4 +22,5 @@ public class ConcertOption {
 
     @Column(name = "concert_id")
     private Long concertId;
+
 }
