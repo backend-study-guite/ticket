@@ -14,7 +14,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<String> handleException(CustomException e){
         log.error("{} : {}", e.getCode().toString(), e.getMessage());
 
-        ExceptionCode code = e.getCode();
-        return ResponseEntity.status(code.getCode()).body(code.getMessage());
+        return ResponseEntity
+                .status(e.getCode().getCode())
+                .body(e.getMessage());
     }
 }
