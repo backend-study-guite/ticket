@@ -23,15 +23,6 @@ public class SynchronizeTest {
     @Autowired
     private TicketingService ticketingService;
 
-    @Autowired
-    private SeatRepository seatRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ReservationRepository reservationRepository;
-
     @Test
     @DisplayName("티켓팅 동시성 제어 테스트 : DB 비관적 락을 통한 제어")
     void ticketingSynchronizeTest() throws Exception {
@@ -71,6 +62,31 @@ public class SynchronizeTest {
         // then
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(failCount.get()).isEqualTo(99);
+    }
+
+    @Test
+    @DisplayName("동시에 100개의 요청이 올 때 캐시 락이 정상 작동하는지 검증")
+    void concurrency_test() throws InterruptedException {
+        int threadCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        long concertOptionId = 1L;
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    ticketingService.getAvailableSeats(concertOptionId);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(); // 모든 스레드 종료 대기
+
+        // 검증 로직: DB 로그나 레디스 호출 횟수 등을 통해
+        // 실제 DB 조회가 최소화되었는지(1번만 수행되었는지) 확인
     }
 }
 

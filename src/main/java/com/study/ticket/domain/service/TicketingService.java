@@ -12,9 +12,11 @@ import com.study.ticket.domain.dto.response.ConcertOptionListResponse;
 import com.study.ticket.domain.dto.response.SeatListResponse;
 import com.study.ticket.domain.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,15 +31,47 @@ public class TicketingService {
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     /**
      * 콘서트 목록을 조회하는 메서드
      * @return
      */
     public ConcertListResponse getConcerts() {
 
+        /*
+        VERSION 1
+
         List<Concert> concerts = concertRepository.findAll();
 
         return ConcertListResponse.from(concerts);
+         */
+
+        String cacheKey = "concerts";
+        String lockKey =  cacheKey + ":lock";
+
+        ConcertListResponse cached = (ConcertListResponse) redisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) return cached;
+
+        Boolean acquireLock = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofSeconds(3));
+
+        if (Boolean.TRUE.equals(acquireLock)) {
+            try {
+                List<Concert> concerts = concertRepository.findAll();
+                ConcertListResponse response = ConcertListResponse.from(concerts);
+                redisTemplate.opsForValue().set(cacheKey, response, Duration.ofMinutes(5));
+                return response;
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        } else {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new CustomException(ExceptionCode.SERVER_ERROR);
+            }
+            return getConcerts();
+        }
     }
 
     /**
@@ -61,9 +95,38 @@ public class TicketingService {
                                 .isAfter(LocalDateTime.now()))
                 .toList();
          */
+        /*
+        VERSION 1
         List<ConcertOption> concertOptions = concertOptionRepository.findByConcertIdAndStartTimeIsAfter(concertId, LocalDateTime.now());
 
         return ConcertOptionListResponse.from(concertOptions);
+         */
+
+        String cacheKey = "concerts:" + concertId + ":options";
+        String lockKey =  cacheKey + ":lock";
+
+        ConcertOptionListResponse cached = (ConcertOptionListResponse) redisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) return cached;
+
+        Boolean acquireLock = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofSeconds(3));
+
+        if (Boolean.TRUE.equals(acquireLock)) {
+            try {
+                List<ConcertOption> concertOptions = concertOptionRepository.findByConcertIdAndStartTimeIsAfter(concertId, LocalDateTime.now());
+                ConcertOptionListResponse response = ConcertOptionListResponse.from(concertOptions);
+                redisTemplate.opsForValue().set(cacheKey, response, Duration.ofMinutes(5));
+                return response;
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        } else {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new CustomException(ExceptionCode.SERVER_ERROR);
+            }
+            return getConcertOptions(concertId);
+        }
     }
 
     /**
@@ -72,10 +135,39 @@ public class TicketingService {
      * @return
      */
     public SeatListResponse getAvailableSeats(Long concertOptionId) {
-
+        /*
+        VERSION 1
         List<Seat> seats = seatRepository.findByConcertOptionIdAndStatus(concertOptionId, SeatStatus.AVAILABLE);
 
         return SeatListResponse.from(seats);
+         */
+
+        String cacheKey = "concerts:options:" + concertOptionId + ":seats";
+        String lockKey = cacheKey + ":lock";
+
+        // 캐시 조회
+        SeatListResponse cached = (SeatListResponse) redisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) return cached;
+
+        Boolean acquireLock = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofSeconds(3));
+
+        if (Boolean.TRUE.equals(acquireLock)) {
+            try {
+                List<Seat> seats = seatRepository.findByConcertOptionIdAndStatus(concertOptionId, SeatStatus.AVAILABLE);
+                SeatListResponse response = SeatListResponse.from(seats);
+                redisTemplate.opsForValue().set(cacheKey, response, Duration.ofMinutes(5));
+                return response;
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        } else {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new CustomException(ExceptionCode.SERVER_ERROR);
+            }
+            return getAvailableSeats(concertOptionId);
+        }
     }
 
     /**
@@ -120,6 +212,10 @@ public class TicketingService {
 
         Reservation reservation = Reservation.of(request.userId(), request.seatId());
         reservationRepository.save(reservation);
+
+        // 예약을 하면 기존에 조회했던 값이랑 달라지므로, 캐싱해줬던 값을 삭제해줘야해
+        String cacheKey = "concerts:options:" + seat.getConcertOptionId() + ":seats";
+        redisTemplate.delete(cacheKey);
 
         return seat.getSeatNumber();
     }
