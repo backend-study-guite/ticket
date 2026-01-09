@@ -50,9 +50,12 @@ public class TicketingService {
 
     /**
      * 좌석을 예약하는 메서드
-     * 1. 동시성 제어하는 로직 구현
-     * @param request
-     * @return
+     * [카프카 연동 로직]
+     * 1. 이전 단계에서 논의한 대기열 및 분산 락 로직 수행.
+     * 2. DB 저장 성공 시, ReservationEvent 객체 생성.
+     * 3. 'reservation-topic'으로 이벤트 전송.
+     * 4. 주의: 전송 실패 시 로그를 남기되, 사용자 예약 자체를 롤백할지(Strong Consistency)
+     * 아니면 별도 재시도를 할지(Eventual Consistency) 정책 결정 필요.
      */
     public String reserveSeat(ReserveSeatRequest request) {
         return null;
